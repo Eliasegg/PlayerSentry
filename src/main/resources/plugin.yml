@@ -1,0 +1,4 @@
+name: PlayerSentry
+version: '${project.version}'
+main: com.eliaseeg.playersentry.PlayerSentry
+api-version: '1.21'
