@@ -2,3 +2,11 @@ name: PlayerSentry
 version: '${project.version}'
 main: com.eliaseeg.playersentry.PlayerSentry
 api-version: '1.21'
+
+commands:
+  sban:
+    description: Ban a player
+    usage: /<command> <player>
+  sunban:
+    description: Unban a player
+    usage: /<command> <player>
