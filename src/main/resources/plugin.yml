@@ -10,3 +10,9 @@ commands:
   sunban:
     description: Unban a player
     usage: /<command> <player>
+  stempban:
+    description: Temporarily ban a player
+    usage: /<command> <player> <time> <reason>
+  stempunban:
+    description: Temporarily unban a player
+    usage: /<command> <player> <time> <reason>

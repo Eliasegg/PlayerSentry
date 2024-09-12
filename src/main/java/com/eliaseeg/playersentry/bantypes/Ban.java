@@ -33,26 +33,7 @@ public class Ban extends BaseBanType {
         }
 
         String playerName = args[0];
-        boolean playerExists = PlayerUtils.getPlayer(playerName, player -> {
-
-            if (player.isBanned()) {
-                MessageUtils.buildMessage(sender, "&cPlayer &7is already banned.");
-                return;
-            }
-
-            ProfileBanList profileBanList = Bukkit.getBanList(BanList.Type.PROFILE);
-            profileBanList.addBan(player.getPlayerProfile(), banMessage, (Date) null, sender.getName());
-
-            if (player.isOnline()) {
-                ((Player)player).kickPlayer(banMessage);
-            }
-
-            MessageUtils.buildMessage(sender, "Banned &a" + playerName);
-        });
-
-        if (!playerExists) {
-            MessageUtils.buildMessage(sender, "&cPlayer &7not found.");
-        }
+        PlayerUtils.banPlayer(sender, playerName, banMessage, null);
     }
 
     @Override
@@ -68,20 +49,7 @@ public class Ban extends BaseBanType {
         }
 
         String playerName = args[0];
-
-        boolean playerExists = PlayerUtils.getPlayer(playerName, player -> {
-            if (!player.isBanned()) {
-                MessageUtils.buildMessage(sender, "&cPlayer &7is not banned.");
-                return;
-            }
-            ProfileBanList profileBanList = Bukkit.getBanList(BanList.Type.PROFILE);
-            profileBanList.pardon(player.getPlayerProfile());
-            MessageUtils.buildMessage(sender, "Unbanned &a" + playerName);
-        });
-
-        if (!playerExists) {
-            MessageUtils.buildMessage(sender, "&cPlayer &7not found.");
-        }
+        PlayerUtils.unbanPlayer(sender, playerName);
     }
 
 }
