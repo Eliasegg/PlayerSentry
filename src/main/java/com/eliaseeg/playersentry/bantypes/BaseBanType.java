@@ -9,12 +9,10 @@ public abstract class BaseBanType implements CommandExecutor, Listener {
 
     protected String banCommand;
     protected String unbanCommand;
-    protected String banMessage;
 
-    public BaseBanType(String banCommand, String unbanCommand, String banMessage) {
+    public BaseBanType(String banCommand, String unbanCommand) {
         this.banCommand = banCommand;
         this.unbanCommand = unbanCommand;
-        this.banMessage = banMessage;
     }
 
     public abstract void handleBan(CommandSender sender, Command command, String label, String[] args);
@@ -38,9 +36,4 @@ public abstract class BaseBanType implements CommandExecutor, Listener {
     public String getUnbanCommand() {
         return unbanCommand;
     }
-
-    public String getBanMessage() {
-        return banMessage;
-    }
-
 }

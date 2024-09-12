@@ -3,14 +3,22 @@ package com.eliaseeg.playersentry;
 import com.eliaseeg.playersentry.bantypes.Ban;
 import com.eliaseeg.playersentry.bantypes.BaseBanType;
 import com.eliaseeg.playersentry.bantypes.TempBan;
-import com.eliaseeg.playersentry.utils.MessageUtils;
+import com.eliaseeg.playersentry.listeners.QuitListener;
 import org.bukkit.plugin.java.JavaPlugin;
+import com.eliaseeg.playersentry.database.SQLiteManager;
+import com.eliaseeg.playersentry.database.OfflinePlayerManager;
+import com.eliaseeg.playersentry.database.MutedPlayerManager;
+import com.eliaseeg.playersentry.database.AuditLogManager;
 
 import java.util.Arrays;
 
 public final class PlayerSentry extends JavaPlugin {
 
     private static PlayerSentry instance;
+    private SQLiteManager sqliteManager;
+    private OfflinePlayerManager offlinePlayerManager;
+    private MutedPlayerManager mutedPlayerManager;
+    private AuditLogManager auditLogManager;
 
     @Override
     public void onEnable() {
@@ -18,17 +26,30 @@ public final class PlayerSentry extends JavaPlugin {
 
         this.saveDefaultConfig();
         this.registerBanTypes();
+
+        sqliteManager = new SQLiteManager(this);
+        sqliteManager.initialize();
+
+        // managers for each table in the db
+        offlinePlayerManager = new OfflinePlayerManager(this);
+        mutedPlayerManager = new MutedPlayerManager(this);
+        auditLogManager = new AuditLogManager(this);
+
+        this.getServer().getPluginManager().registerEvents(new QuitListener(), this);
     }
 
     @Override
     public void onDisable() {
-        // Plugin shutdown logic
+        // Close the database connection
+        if (sqliteManager != null) {
+            sqliteManager.closeConnection();
+        }
     }
 
     private void registerBanTypes() {
         BaseBanType[] banTypes = new BaseBanType[]{
-                new Ban("sban", "sunban", MessageUtils.getMessage("PERMANENT_BAN_MESSAGE")),
-                new TempBan("stempban", "stempunban", MessageUtils.getMessage("TEMPORARY_BAN_MESSAGE"))
+                new Ban("sban", "sunban"),
+                new TempBan("stempban", "stempunban")
         };
 
         Arrays.stream(banTypes)
@@ -40,6 +61,22 @@ public final class PlayerSentry extends JavaPlugin {
 
     public static PlayerSentry getInstance() {
         return instance;
+    }
+
+    public SQLiteManager getSqliteManager() {
+        return sqliteManager;
+    }
+
+    public OfflinePlayerManager getOfflinePlayerManager() {
+        return offlinePlayerManager;
+    }
+
+    public MutedPlayerManager getMutedPlayerManager() {
+        return mutedPlayerManager;
+    }
+
+    public AuditLogManager getAuditLogManager() {
+        return auditLogManager;
     }
 
 }

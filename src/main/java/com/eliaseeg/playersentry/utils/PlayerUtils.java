@@ -2,6 +2,7 @@ package com.eliaseeg.playersentry.utils;
 
 import org.bukkit.BanList;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.ban.ProfileBanList;
 import org.bukkit.command.CommandSender;
@@ -28,10 +29,12 @@ public class PlayerUtils {
                 return;
             }
 
+            String banMessage = ChatColor.translateAlternateColorCodes('&', "&c" + reason);
+
             ProfileBanList profileBanList = Bukkit.getBanList(BanList.Type.PROFILE);
-            profileBanList.addBan(player.getPlayerProfile(), reason, duration, sender.getName());
+            profileBanList.addBan(player.getPlayerProfile(), banMessage, duration, sender.getName());
             if (player.isOnline()) {
-                ((Player)player).kickPlayer(reason);
+                ((Player)player).kickPlayer(banMessage);
             }
 
             MessageUtils.buildMessage(sender, "Banned &a" + playerName);
@@ -80,4 +83,5 @@ public class PlayerUtils {
         }
         return false;
     }
+
 }

@@ -2,9 +2,6 @@ package com.eliaseeg.playersentry.bantypes;
 
 import com.eliaseeg.playersentry.utils.MessageUtils;
 import com.eliaseeg.playersentry.utils.PlayerUtils;
-import org.bukkit.BanList;
-import org.bukkit.Bukkit;
-import org.bukkit.ban.ProfileBanList;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 
@@ -12,10 +9,11 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.Calendar;
 
+/** Represents a ban for a PLAYER for a fixed duration from the server. */
 public class TempBan extends BaseBanType {
 
-    public TempBan(String banCommand, String unbanCommand, String banMessage) {
-        super(banCommand, unbanCommand, banMessage);
+    public TempBan(String banCommand, String unbanCommand) {
+        super(banCommand, unbanCommand);
     }
 
     @Override
