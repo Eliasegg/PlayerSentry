@@ -10,11 +10,19 @@ import java.util.logging.Level;
 
 public class SQLiteManager {
 
+    private static SQLiteManager instance;
     private final PlayerSentry plugin;
     private Connection connection;
 
-    public SQLiteManager(PlayerSentry plugin) {
+    private SQLiteManager(PlayerSentry plugin) {
         this.plugin = plugin;
+    }
+
+    public static synchronized SQLiteManager getInstance(PlayerSentry plugin) {
+        if (instance == null) {
+            instance = new SQLiteManager(plugin);
+        }
+        return instance;
     }
 
     public void initialize() {
@@ -22,11 +30,19 @@ public class SQLiteManager {
         createTables();
     }
 
+    public synchronized Connection getConnection() {
+        try {
+            if (connection == null || connection.isClosed()) {
+                connection = getSQLConnection();
+            }
+        } catch (SQLException e) {
+            plugin.getLogger().log(Level.SEVERE, "Error checking connection status", e);
+        }
+        return connection;
+    }
+
     private Connection getSQLConnection() {
         String dbName = "player_sentry.db";
-        if (connection != null) {
-            return connection;
-        }
         try {
             Class.forName("org.sqlite.JDBC");
             connection = DriverManager.getConnection("jdbc:sqlite:" + plugin.getDataFolder() + "/" + dbName);
@@ -64,10 +80,6 @@ public class SQLiteManager {
         } catch (SQLException e) {
             plugin.getLogger().log(Level.SEVERE, "Error creating SQLite tables", e);
         }
-    }
-
-    public Connection getConnection() {
-        return connection;
     }
 
     public void closeConnection() {

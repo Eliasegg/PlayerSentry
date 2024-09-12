@@ -27,7 +27,7 @@ public final class PlayerSentry extends JavaPlugin {
         this.saveDefaultConfig();
         this.registerBanTypes();
 
-        sqliteManager = new SQLiteManager(this);
+        sqliteManager = SQLiteManager.getInstance(this);
         sqliteManager.initialize();
 
         // managers for each table in the db

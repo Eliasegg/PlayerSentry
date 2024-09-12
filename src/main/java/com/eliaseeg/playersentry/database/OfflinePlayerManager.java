@@ -5,7 +5,11 @@ import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
@@ -22,14 +26,14 @@ public class OfflinePlayerManager {
         new BukkitRunnable() {
             @Override
             public void run() {
-                String sql = "INSERT OR REPLACE INTO offline_players (uuid, ip_address, lastLoggedName) VALUES (?, ?, ?)";
                 try (Connection conn = plugin.getSqliteManager().getConnection();
-                     PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                     PreparedStatement pstmt = conn.prepareStatement("INSERT OR REPLACE INTO offline_players (uuid, ip_address, lastLoggedName) VALUES (?, ?, ?)")) {
                     pstmt.setString(1, uuid.toString());
                     pstmt.setString(2, ipAddress);
                     pstmt.setString(3, lastLoggedName);
                     pstmt.executeUpdate();
                 } catch (SQLException e) {
+                    e.printStackTrace();
                     plugin.getLogger().log(Level.SEVERE, "Error adding or updating offline player", e);
                 }
             }
@@ -76,21 +80,22 @@ public class OfflinePlayerManager {
         }.runTaskAsynchronously(plugin);
     }
 
-    public CompletableFuture<OfflinePlayer> getOfflinePlayerByName(String name) {
-        CompletableFuture<OfflinePlayer> future = new CompletableFuture<>();
+    public CompletableFuture<Optional<OfflinePlayer>> getOfflinePlayerByName(String name) {
+        CompletableFuture<Optional<OfflinePlayer>> future = new CompletableFuture<>();
         new BukkitRunnable() {
             @Override
             public void run() {
-                String sql = "SELECT uuid FROM offline_players WHERE lastLoggedName = ? ORDER BY id DESC LIMIT 1";
                 try (Connection conn = plugin.getSqliteManager().getConnection();
-                     PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                     PreparedStatement pstmt = conn.prepareStatement("SELECT uuid FROM offline_players WHERE lastLoggedName = ?")) {
                     pstmt.setString(1, name);
-                    ResultSet rs = pstmt.executeQuery();
-                    if (rs.next()) {
-                        UUID uuid = UUID.fromString(rs.getString("uuid"));
-                        future.complete(Bukkit.getOfflinePlayer(uuid));
-                    } else {
-                        future.complete(null);
+                    try (ResultSet rs = pstmt.executeQuery()) {
+                        if (rs.next()) {
+                            UUID uuid = UUID.fromString(rs.getString("uuid"));
+                            OfflinePlayer player = Bukkit.getOfflinePlayer(uuid);
+                            future.complete(Optional.of(player));
+                        } else {
+                            future.complete(Optional.empty());
+                        }
                     }
                 } catch (SQLException e) {
                     plugin.getLogger().log(Level.SEVERE, "Error getting offline player by name", e);

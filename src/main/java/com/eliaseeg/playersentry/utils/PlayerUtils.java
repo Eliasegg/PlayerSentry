@@ -13,7 +13,11 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
+import java.util.logging.Level;
 
 public class PlayerUtils {
 
@@ -85,13 +89,24 @@ public class PlayerUtils {
             return true;
         }
 
-        // If the player is not online, try to find the Player object in the offline player manager.
-        Optional<OfflinePlayer> offlinePlayerOptional = PlayerSentry.getInstance().getOfflinePlayerManager().getOfflinePlayerByName(playerName)
-                .thenApply(Optional::ofNullable)
-                .join();
-        if (offlinePlayerOptional.isPresent()) {
-            playerConsumer.accept(offlinePlayerOptional.get());
+        // If not online, try to get the OfflinePlayer synchronously first
+        OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(playerName);
+        if (offlinePlayer != null && offlinePlayer.hasPlayedBefore()) {
+            playerConsumer.accept(offlinePlayer);
             return true;
+        }
+
+        // If still not found, try the async method with a timeout
+        CompletableFuture<Optional<OfflinePlayer>> offlinePlayerFuture = PlayerSentry.getInstance().getOfflinePlayerManager().getOfflinePlayerByName(playerName);
+        try {
+            Optional<OfflinePlayer> offlinePlayerOptional = offlinePlayerFuture.get(5, TimeUnit.SECONDS);
+            if (offlinePlayerOptional.isPresent()) {
+                playerConsumer.accept(offlinePlayerOptional.get());
+                return true;
+            }
+        } catch (InterruptedException | ExecutionException | TimeoutException e) {
+            PlayerSentry.getInstance().getLogger().log(Level.SEVERE, "Error or timeout while getting offline player", e);
+            return false;
         }
 
         return false;
