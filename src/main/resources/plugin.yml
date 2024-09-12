@@ -16,3 +16,9 @@ commands:
   stempunban:
     description: Temporarily unban a player
     usage: /<command> <player> <time> <reason>
+  sblacklist:
+    description: Blacklist a player
+    usage: /<command> <player> <reason>
+  sunblacklist:
+    description: Unblacklist a player
+    usage: /<command> <player>

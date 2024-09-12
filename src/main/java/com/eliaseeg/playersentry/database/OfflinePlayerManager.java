@@ -3,6 +3,7 @@ package com.eliaseeg.playersentry.database;
 import com.eliaseeg.playersentry.PlayerSentry;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.sql.Connection;
@@ -49,11 +50,10 @@ public class OfflinePlayerManager {
                 try (Connection conn = plugin.getSqliteManager().getConnection();
                      PreparedStatement pstmt = conn.prepareStatement(sql)) {
                     pstmt.setString(1, uuid.toString());
-                    ResultSet rs = pstmt.executeQuery();
-                    if (rs.next()) {
-                        future.complete(rs.getString("ip_address"));
-                    } else {
-                        future.complete(null);
+                    try (ResultSet rs = pstmt.executeQuery()) {
+                        if (rs.next()) {
+                            future.complete(rs.getString("ip_address"));
+                        }
                     }
                 } catch (SQLException e) {
                     plugin.getLogger().log(Level.SEVERE, "Error getting IP address for player", e);

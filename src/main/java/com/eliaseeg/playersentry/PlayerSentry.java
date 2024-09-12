@@ -2,6 +2,7 @@ package com.eliaseeg.playersentry;
 
 import com.eliaseeg.playersentry.bantypes.Ban;
 import com.eliaseeg.playersentry.bantypes.BaseBanType;
+import com.eliaseeg.playersentry.bantypes.Blacklist;
 import com.eliaseeg.playersentry.bantypes.TempBan;
 import com.eliaseeg.playersentry.listeners.QuitListener;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -49,7 +50,8 @@ public final class PlayerSentry extends JavaPlugin {
     private void registerBanTypes() {
         BaseBanType[] banTypes = new BaseBanType[]{
                 new Ban("sban", "sunban"),
-                new TempBan("stempban", "stempunban")
+                new TempBan("stempban", "stempunban"),
+                new Blacklist("sblacklist", "sunblacklist"),
         };
 
         Arrays.stream(banTypes)

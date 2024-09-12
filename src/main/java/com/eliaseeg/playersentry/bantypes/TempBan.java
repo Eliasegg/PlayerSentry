@@ -18,7 +18,7 @@ public class TempBan extends BaseBanType {
 
     @Override
     public void handleBan(CommandSender sender, Command command, String label, String[] args) {
-        if (args.length < 3) {
+        if (args.length < 2) {
             MessageUtils.buildMessage(sender, "&7Usage: /stempban <player> <time> <reason>");
             return;
         }

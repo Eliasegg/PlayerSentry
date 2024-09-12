@@ -5,11 +5,13 @@ import org.bukkit.BanList;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.ban.IpBanList;
 import org.bukkit.ban.ProfileBanList;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import java.util.Arrays;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.Date;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -20,6 +22,55 @@ import java.util.function.Consumer;
 import java.util.logging.Level;
 
 public class PlayerUtils {
+
+    public static void banPlayerIP(CommandSender sender, String playerName, String reason) {
+        CompletableFuture<InetAddress> ipFuture = PlayerUtils.getIPFromPlayer(playerName);
+        ipFuture.thenAccept(ip -> {
+            if (ip == null) {
+                MessageUtils.buildMessage(sender, "&cCould not retrieve IP address for player. They may not have joined the server before.");
+                return;
+            }
+
+            String banMessage = ChatColor.translateAlternateColorCodes('&', "&c" + reason);
+
+            IpBanList ipBanList = Bukkit.getBanList(BanList.Type.IP);
+            ipBanList.addBan(ip, banMessage, (Date)null, sender.getName());
+
+            Player player = Bukkit.getPlayer(playerName);
+            if (player != null && player.isOnline()) {
+                player.kickPlayer(banMessage);
+            }
+
+            MessageUtils.buildMessage(sender, "Blacklisted &a" + playerName);
+        }).exceptionally(e -> {
+            PlayerSentry.getInstance().getLogger().log(Level.SEVERE, "Error banning player IP: " + playerName, e);
+            MessageUtils.buildMessage(sender, "&cAn error occurred while banning player IP. Please check the server logs.");
+            return null;
+        });
+    }
+
+    public static void unbanPlayerIP(CommandSender sender, String playerName) {
+        CompletableFuture<InetAddress> ipFuture = PlayerUtils.getIPFromPlayer(playerName);
+        ipFuture.thenAccept(ip -> {
+            if (ip == null) {
+                MessageUtils.buildMessage(sender, "&cCould not retrieve IP address for player.");
+                return;
+            }
+
+            IpBanList ipBanList = Bukkit.getBanList(BanList.Type.IP);
+            if (!ipBanList.isBanned(ip)) {
+                MessageUtils.buildMessage(sender, "&cIP address of &7" + playerName + " &cis not blacklisted.");
+                return;
+            }
+
+            ipBanList.pardon(ip);
+            MessageUtils.buildMessage(sender, "Unblacklisted IP of &a" + playerName);
+        }).exceptionally(e -> {
+            PlayerSentry.getInstance().getLogger().log(Level.SEVERE, "Error unbanning player IP: " + playerName, e);
+            MessageUtils.buildMessage(sender, "&cAn error occurred while unbanning player IP.");
+            return null;
+        });
+    }
 
     /**
      * Ban a player for a fixed duration.
@@ -110,6 +161,32 @@ public class PlayerUtils {
         }
 
         return false;
+    }
+
+    public static CompletableFuture<InetAddress> getIPFromPlayer(String playerName) {
+        Player player = Bukkit.getPlayer(playerName);
+        if (player != null) {
+            return CompletableFuture.completedFuture(player.getAddress().getAddress());
+        }
+
+        return PlayerSentry.getInstance().getOfflinePlayerManager().getOfflinePlayerByName(playerName)
+            .thenCompose(optionalPlayer -> {
+                if (optionalPlayer.isPresent()) {
+                    return PlayerSentry.getInstance().getOfflinePlayerManager()
+                        .getIpAddress(optionalPlayer.get().getUniqueId())
+                        .thenApply(ipAddress -> {
+                            if (ipAddress != null) {
+                                try {
+                                    return InetAddress.getByName(ipAddress);
+                                } catch (UnknownHostException e) {
+                                    PlayerSentry.getInstance().getLogger().log(Level.SEVERE, "Error getting IP address for player", e);
+                                }
+                            }
+                            return null;
+                        });
+                }
+                return CompletableFuture.completedFuture(null);
+            });
     }
 
 }
