@@ -1,5 +1,6 @@
 package com.eliaseeg.playersentry.utils;
 
+import com.eliaseeg.playersentry.PlayerSentry;
 import org.bukkit.BanList;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -11,6 +12,7 @@ import org.bukkit.entity.Player;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
 public class PlayerUtils {
@@ -73,14 +75,25 @@ public class PlayerUtils {
      * @return True if the player was found, false otherwise.
      */
     private static boolean getPlayer(String playerName, Consumer<OfflinePlayer> playerConsumer) {
-        Optional<OfflinePlayer> playerOptional = Arrays.stream(Bukkit.getOfflinePlayers())
+        // First, try to find the Player object in the server. That means the player is online.
+        Optional<OfflinePlayer> playerOptional = Bukkit.getOnlinePlayers().stream()
                 .filter(player -> player.getName().equalsIgnoreCase(playerName))
+                .map(player -> (OfflinePlayer) player)
                 .findFirst();
-
         if (playerOptional.isPresent()) {
             playerConsumer.accept(playerOptional.get());
             return true;
         }
+
+        // If the player is not online, try to find the Player object in the offline player manager.
+        Optional<OfflinePlayer> offlinePlayerOptional = PlayerSentry.getInstance().getOfflinePlayerManager().getOfflinePlayerByName(playerName)
+                .thenApply(Optional::ofNullable)
+                .join();
+        if (offlinePlayerOptional.isPresent()) {
+            playerConsumer.accept(offlinePlayerOptional.get());
+            return true;
+        }
+
         return false;
     }
 
