@@ -21,8 +21,6 @@ import java.util.logging.Level;
 
 public class PlayerUtils {
 
-    private static final int LOGS_PER_PAGE = 10;
-
     public static void getAuditLogs(CommandSender sender, String playerName, int page) {
         getPlayer(playerName).thenAccept(optionalPlayer -> {
             if (!optionalPlayer.isPresent()) {
@@ -45,6 +43,7 @@ public class PlayerUtils {
     }
 
     private static void displayAuditLogs(CommandSender sender, OfflinePlayer player, List<AuditLogManager.AuditLogInfo> logs, int page) {
+        int LOGS_PER_PAGE = PlayerSentry.getInstance().getConfig().getInt("LOGS_PER_PAGE");
         if (logs.isEmpty()) {
             MessageUtils.buildMessage(sender, "&6Audit logs for &f" + player.getName() + "&6: This player hasn't received any punishment.");
             return;

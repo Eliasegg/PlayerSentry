@@ -1,2 +1,3 @@
+LOGS_PER_PAGE: 10
 MESSAGES:
   CHAT_PREFIX: "&8[&6PlayerSentry&8] &7"
