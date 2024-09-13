@@ -37,3 +37,6 @@ commands:
   skick:
     description: Kick a player
     usage: /<command> <player> <reason>
+  slogs:
+    description: View player punishment logs
+    usage: /<command> <player> [page]

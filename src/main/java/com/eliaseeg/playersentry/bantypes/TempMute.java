@@ -1,8 +1,10 @@
 package com.eliaseeg.playersentry.bantypes;
 
+import com.eliaseeg.playersentry.PlayerSentry;
 import com.eliaseeg.playersentry.utils.GeneralUtils;
 import com.eliaseeg.playersentry.utils.MessageUtils;
 import com.eliaseeg.playersentry.utils.PlayerUtils;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 
@@ -33,7 +35,21 @@ public class TempMute extends BaseBanType {
             return;
         }
 
-        PlayerUtils.mutePlayer(sender, playerName, reason, expirationDate);
+        PlayerUtils.mutePlayer(sender, playerName, reason, expirationDate).thenAccept(success -> {
+            if (!success) return;
+            PlayerUtils.getPlayer(playerName).thenAccept(optionalPlayer -> {
+                OfflinePlayer player = optionalPlayer.get();
+
+                PlayerSentry.getInstance().getAuditLogManager().addAuditLog(
+                    sender.getName(),
+                    player.getUniqueId(),
+                    reason,
+                    time,
+                    this.toString(),
+                    false
+                );
+            });
+        });
     }
 
     @Override
@@ -44,6 +60,25 @@ public class TempMute extends BaseBanType {
         }
 
         String playerName = args[0];
-        PlayerUtils.unmutePlayer(sender, playerName);
+        PlayerUtils.unmutePlayer(sender, playerName).thenAccept(success -> {
+            if (!success) return;
+            PlayerUtils.getPlayer(playerName).thenAccept(optionalPlayer -> {
+                OfflinePlayer player = optionalPlayer.get();
+
+                PlayerSentry.getInstance().getAuditLogManager().addAuditLog(
+                    sender.getName(),
+                    player.getUniqueId(),
+                    "Temporary mute removed",
+                    "N/A",
+                    this.toString(),
+                    true
+                );
+            });
+        });
+    }
+
+    @Override
+    public String toString() {
+        return "Temporary Mute";
     }
 }

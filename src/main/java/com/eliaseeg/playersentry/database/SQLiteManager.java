@@ -1,7 +1,6 @@
 package com.eliaseeg.playersentry.database;
 
 import com.eliaseeg.playersentry.PlayerSentry;
-
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -12,7 +11,6 @@ public class SQLiteManager {
 
     private static SQLiteManager instance;
     private final PlayerSentry plugin;
-    private Connection connection;
 
     private SQLiteManager(PlayerSentry plugin) {
         this.plugin = plugin;
@@ -26,36 +24,23 @@ public class SQLiteManager {
     }
 
     public void initialize() {
-        connection = getSQLConnection();
         createTables();
     }
 
-    public synchronized Connection getConnection() {
+    public Connection getConnection() {
         try {
-            if (connection == null || connection.isClosed()) {
-                connection = getSQLConnection();
-            }
-        } catch (SQLException e) {
-            plugin.getLogger().log(Level.SEVERE, "Error checking connection status", e);
-        }
-        return connection;
-    }
-
-    private Connection getSQLConnection() {
-        String dbName = "player_sentry.db";
-        try {
+            String dbName = "player_sentry.db";
             Class.forName("org.sqlite.JDBC");
-            connection = DriverManager.getConnection("jdbc:sqlite:" + plugin.getDataFolder() + "/" + dbName);
-            return connection;
+            return DriverManager.getConnection("jdbc:sqlite:" + plugin.getDataFolder() + "/" + dbName);
         } catch (SQLException | ClassNotFoundException ex) {
-            plugin.getLogger().log(Level.SEVERE, "SQLite exception on initialize", ex);
+            plugin.getLogger().log(Level.SEVERE, "Error getting SQLite connection", ex);
+            return null;
         }
-        return null;
     }
 
     private void createTables() {
-        try (Statement statement = connection.createStatement()) {
-            // Create offline_players table with lastLoggedName column
+        try (Connection connection = getConnection(); Statement statement = connection.createStatement()) {
+            // Create offline_players table
             statement.executeUpdate("CREATE TABLE IF NOT EXISTS offline_players (" +
                     "id INTEGER PRIMARY KEY AUTOINCREMENT," +
                     "uuid VARCHAR(36) NOT NULL," +
@@ -76,7 +61,9 @@ public class SQLiteManager {
                     "source VARCHAR(36) NOT NULL," +
                     "target VARCHAR(36) NOT NULL," +
                     "reason TEXT," +
-                    "duration VARCHAR(50))");
+                    "duration VARCHAR(50)," +
+                    "punishment_type VARCHAR(50)," +
+                    "is_removal BOOLEAN)");
 
             plugin.getLogger().info("SQLite tables created successfully.");
         } catch (SQLException e) {
@@ -84,13 +71,4 @@ public class SQLiteManager {
         }
     }
 
-    public void closeConnection() {
-        try {
-            if (connection != null && !connection.isClosed()) {
-                connection.close();
-            }
-        } catch (SQLException e) {
-            plugin.getLogger().log(Level.SEVERE, "Error closing SQLite connection", e);
-        }
-    }
 }

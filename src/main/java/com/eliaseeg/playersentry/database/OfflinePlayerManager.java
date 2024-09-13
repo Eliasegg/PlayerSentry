@@ -120,29 +120,25 @@ public class OfflinePlayerManager {
             return CompletableFuture.completedFuture(Optional.empty());
         }
 
-        CompletableFuture<Optional<OfflinePlayer>> future = new CompletableFuture<>();
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                try (Connection conn = plugin.getSqliteManager().getConnection();
-                     PreparedStatement pstmt = conn.prepareStatement("SELECT uuid FROM offline_players WHERE lastLoggedName = ?")) {
-                    pstmt.setString(1, name);
-                    try (ResultSet rs = pstmt.executeQuery()) {
-                        if (rs.next()) {
-                            UUID uuid = UUID.fromString(rs.getString("uuid"));
-                            OfflinePlayer player = Bukkit.getOfflinePlayer(uuid);
-                            future.complete(Optional.of(player));
-                        } else {
-                            future.complete(Optional.empty());
-                        }
+        return CompletableFuture.supplyAsync(() -> {
+            try (Connection conn = plugin.getSqliteManager().getConnection();
+                 PreparedStatement pstmt = conn.prepareStatement("SELECT uuid FROM offline_players WHERE LOWER(lastLoggedName) = LOWER(?)")) {
+                pstmt.setString(1, name);
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    if (rs.next()) {
+                        UUID uuid = UUID.fromString(rs.getString("uuid"));
+                        OfflinePlayer player = Bukkit.getOfflinePlayer(uuid);
+                        return Optional.of(player);
+                    } else {
+                        return Optional.empty();
                     }
-                } catch (SQLException e) {
-                    plugin.getLogger().log(Level.SEVERE, "Error getting offline player by name", e);
-                    future.completeExceptionally(e);
                 }
+            } catch (SQLException e) {
+                plugin.getLogger().log(Level.SEVERE, "Error getting offline player by name", e);
+                throw new RuntimeException(e);
             }
-        }.runTaskAsynchronously(plugin);
-        return future;
+        });
     }
+
 
 }

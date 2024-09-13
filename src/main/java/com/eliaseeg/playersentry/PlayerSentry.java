@@ -36,13 +36,15 @@ public final class PlayerSentry extends JavaPlugin {
 
         this.getServer().getPluginManager().registerEvents(new QuitListener(), this);
         this.getServer().getPluginManager().registerEvents(new ChatListener(), this);
+
+        this.getCommand("slogs").setExecutor(new PlayerAuditCommand());
     }
 
     @Override
     public void onDisable() {
         // Close the database connection
         if (sqliteManager != null) {
-            sqliteManager.closeConnection();
+            sqliteManager = null;
         }
     }
 

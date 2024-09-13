@@ -1,7 +1,9 @@
 package com.eliaseeg.playersentry.bantypes;
 
+import com.eliaseeg.playersentry.PlayerSentry;
 import com.eliaseeg.playersentry.utils.MessageUtils;
 import com.eliaseeg.playersentry.utils.PlayerUtils;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 
@@ -24,7 +26,21 @@ public class Blacklist extends BaseBanType {
         String playerName = args[0];
         String reason = String.join(" ", Arrays.copyOfRange(args, 1, args.length));
 
-        PlayerUtils.banPlayerIP(sender, playerName, reason);
+        PlayerUtils.banPlayerIP(sender, playerName, reason).thenAccept(success -> {
+            if (!success) return;
+            PlayerUtils.getPlayer(playerName).thenAccept(optionalPlayer -> {
+                OfflinePlayer player = optionalPlayer.get();
+
+                PlayerSentry.getInstance().getAuditLogManager().addAuditLog(
+                        sender.getName(),
+                        player.getUniqueId(),
+                        reason,
+                        "Permanent",
+                        this.toString(),
+                        false
+                );
+            });
+        });
     }
 
     @Override
@@ -40,6 +56,26 @@ public class Blacklist extends BaseBanType {
         }
 
         String playerName = args[0];
-        PlayerUtils.unbanPlayerIP(sender, playerName);
+        PlayerUtils.unbanPlayerIP(sender, playerName).thenAccept(success -> {
+            if (!success) return;
+            PlayerUtils.getPlayer(playerName).thenAccept(optionalPlayer -> {
+                OfflinePlayer player = optionalPlayer.get();
+
+                PlayerSentry.getInstance().getAuditLogManager().addAuditLog(
+                        sender.getName(),
+                        player.getUniqueId(),
+                        "Unbanned",
+                        "N/A",
+                        this.toString(),
+                        true
+                );
+            });
+        });
+
+    }
+
+    @Override
+    public String toString() {
+        return "Permanent IP Ban";
     }
 }

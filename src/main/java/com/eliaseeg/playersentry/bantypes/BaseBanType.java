@@ -36,4 +36,9 @@ public abstract class BaseBanType implements CommandExecutor, Listener {
     public String getUnbanCommand() {
         return unbanCommand;
     }
+
+    @Override
+    public String toString() {
+        return this.getClass().getSimpleName();
+    }
 }

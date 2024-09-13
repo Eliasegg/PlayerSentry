@@ -1,5 +1,6 @@
 package com.eliaseeg.playersentry.bantypes;
 
+import com.eliaseeg.playersentry.PlayerSentry;
 import com.eliaseeg.playersentry.utils.MessageUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -33,11 +34,25 @@ public class Kick extends BaseBanType {
 
         player.kickPlayer(ChatColor.translateAlternateColorCodes('&', reason));
         MessageUtils.buildMessage(sender, "&aPlayer &7kicked.");
+
+        PlayerSentry.getInstance().getAuditLogManager().addAuditLog(
+            sender.getName(),
+            player.getUniqueId(),
+            reason,
+            "Temporary",
+            this.toString(),
+            false
+        );
     }
 
     @Override
     public void handleUnban(CommandSender sender, Command command, String label, String[] args) {
         return; // Kick should not have an unban command as there is no opposite to kick.
+    }
+
+    @Override
+    public String toString() {
+        return "Kick";
     }
 
 
