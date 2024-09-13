@@ -7,36 +7,66 @@ commands:
   sban:
     description: Ban a player
     usage: /<command> <player>
+    permission: playersentry.ban
   sunban:
     description: Unban a player
     usage: /<command> <player>
+    permission: playersentry.unban
   stempban:
     description: Temporarily ban a player
     usage: /<command> <player> <time> <reason>
+    permission: playersentry.tempban
   stempunban:
     description: Temporarily unban a player
     usage: /<command> <player> <time> <reason>
+    permission: playersentry.tempunban
   sblacklist:
     description: Blacklist a player
     usage: /<command> <player> <reason>
+    permission: playersentry.blacklist
   sunblacklist:
     description: Unblacklist a player
     usage: /<command> <player>
+    permission: playersentry.unblacklist
   smute:
     description: Mute a player
     usage: /<command> <player> <reason>
+    permission: playersentry.mute
   sunmute:
     description: Unmute a player
     usage: /<command> <player>
+    permission: playersentry.unmute
   stempmute:
     description: Temporarily mute a player
     usage: /<command> <player> <time> <reason>
+    permission: playersentry.tempmute
   stempunmute:
     description: Temporarily unmute a player
     usage: /<command> <player> <time> <reason>
+    permission: playersentry.tempunmute
   skick:
     description: Kick a player
     usage: /<command> <player> <reason>
+    permission: playersentry.kick
   slogs:
     description: View player punishment logs
     usage: /<command> <player> [page]
+    permission: playersentry.logs
+
+permissions:
+  playersentry.*:
+    description: Gives access to all PlayerSentry commands
+    children:
+      playersentry.ban: true
+      playersentry.unban: true
+      playersentry.tempban: true
+      playersentry.tempunban: true
+      playersentry.blacklist: true
+      playersentry.unblacklist: true
+      playersentry.mute: true
+      playersentry.unmute: true
+      playersentry.tempmute: true
+      playersentry.tempunmute: true
+      playersentry.kick: true
+      playersentry.logs: true
+    default: op
