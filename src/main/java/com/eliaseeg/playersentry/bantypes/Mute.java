@@ -8,6 +8,7 @@ import org.bukkit.command.CommandSender;
 import java.util.Arrays;
 import java.util.Date;
 
+/** Represents a mute for a PLAYER permanently from the server. */
 public class Mute extends BaseBanType {
 
     public Mute(String banCommand, String unbanCommand) {

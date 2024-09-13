@@ -8,19 +8,18 @@ import org.bukkit.command.CommandSender;
 
 import java.util.Arrays;
 import java.util.Date;
-import java.util.Calendar;
 
-/** Represents a ban for a PLAYER for a fixed duration from the server. */
-public class TempBan extends BaseBanType {
+/** Represents a mute for a PLAYER for a fixed duration from the server. */
+public class TempMute extends BaseBanType {
 
-    public TempBan(String banCommand, String unbanCommand) {
+    public TempMute(String banCommand, String unbanCommand) {
         super(banCommand, unbanCommand);
     }
 
     @Override
     public void handleBan(CommandSender sender, Command command, String label, String[] args) {
         if (args.length < 2) {
-            MessageUtils.buildMessage(sender, "&7Usage: /stempban <player> <time> <reason>");
+            MessageUtils.buildMessage(sender, "&7Usage: /stempmute <player> <time> <reason>");
             return;
         }
 
@@ -34,18 +33,17 @@ public class TempBan extends BaseBanType {
             return;
         }
 
-        PlayerUtils.banPlayer(sender, playerName, reason, expirationDate);
+        PlayerUtils.mutePlayer(sender, playerName, reason, expirationDate);
     }
 
     @Override
     public void handleUnban(CommandSender sender, Command command, String label, String[] args) {
         if (args.length < 1) {
-            MessageUtils.buildMessage(sender, "&7Usage: /stempunban <player>");
+            MessageUtils.buildMessage(sender, "&7Usage: /stempunmute <player>");
             return;
         }
 
         String playerName = args[0];
-        PlayerUtils.unbanPlayer(sender, playerName);
+        PlayerUtils.unmutePlayer(sender, playerName);
     }
-
 }

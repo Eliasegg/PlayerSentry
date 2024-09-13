@@ -28,3 +28,9 @@ commands:
   sunmute:
     description: Unmute a player
     usage: /<command> <player>
+  stempmute:
+    description: Temporarily mute a player
+    usage: /<command> <player> <time> <reason>
+  stempunmute:
+    description: Temporarily unmute a player
+    usage: /<command> <player> <time> <reason>

@@ -7,6 +7,7 @@ import org.bukkit.command.CommandSender;
 
 import java.util.Arrays;
 
+/** Represents a ban for an IP address permanently from the server. */
 public class Blacklist extends BaseBanType {
 
     public Blacklist(String banCommand, String unbanCommand) {

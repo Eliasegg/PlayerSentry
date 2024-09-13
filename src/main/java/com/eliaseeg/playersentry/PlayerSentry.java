@@ -52,6 +52,7 @@ public final class PlayerSentry extends JavaPlugin {
                 new TempBan("stempban", "stempunban"),
                 new Blacklist("sblacklist", "sunblacklist"),
                 new Mute("smute", "sunmute"),
+                new TempMute("stempmute", "stempunmute"),
         };
 
         Arrays.stream(banTypes)
