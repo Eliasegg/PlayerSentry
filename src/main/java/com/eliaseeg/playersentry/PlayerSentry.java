@@ -53,11 +53,16 @@ public final class PlayerSentry extends JavaPlugin {
                 new Blacklist("sblacklist", "sunblacklist"),
                 new Mute("smute", "sunmute"),
                 new TempMute("stempmute", "stempunmute"),
+                new Kick("skick", null),
         };
 
         Arrays.stream(banTypes)
                 .forEach(banType -> {
                     getCommand(banType.getBanCommand()).setExecutor(banType);
+
+                    // Account for the kick command. It doesn't have an opposite command.
+                    if (banType.getUnbanCommand() == null || banType.getUnbanCommand().isEmpty()) return;
+
                     getCommand(banType.getUnbanCommand()).setExecutor(banType);
                 });
     }

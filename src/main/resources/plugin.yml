@@ -34,3 +34,6 @@ commands:
   stempunmute:
     description: Temporarily unmute a player
     usage: /<command> <player> <time> <reason>
+  skick:
+    description: Kick a player
+    usage: /<command> <player> <reason>
