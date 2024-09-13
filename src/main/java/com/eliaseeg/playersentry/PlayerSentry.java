@@ -1,9 +1,7 @@
 package com.eliaseeg.playersentry;
 
-import com.eliaseeg.playersentry.bantypes.Ban;
-import com.eliaseeg.playersentry.bantypes.BaseBanType;
-import com.eliaseeg.playersentry.bantypes.Blacklist;
-import com.eliaseeg.playersentry.bantypes.TempBan;
+import com.eliaseeg.playersentry.bantypes.*;
+import com.eliaseeg.playersentry.listeners.ChatListener;
 import com.eliaseeg.playersentry.listeners.QuitListener;
 import org.bukkit.plugin.java.JavaPlugin;
 import com.eliaseeg.playersentry.database.SQLiteManager;
@@ -37,6 +35,7 @@ public final class PlayerSentry extends JavaPlugin {
         auditLogManager = new AuditLogManager(this);
 
         this.getServer().getPluginManager().registerEvents(new QuitListener(), this);
+        this.getServer().getPluginManager().registerEvents(new ChatListener(), this);
     }
 
     @Override
@@ -52,6 +51,7 @@ public final class PlayerSentry extends JavaPlugin {
                 new Ban("sban", "sunban"),
                 new TempBan("stempban", "stempunban"),
                 new Blacklist("sblacklist", "sunblacklist"),
+                new Mute("smute", "sunmute"),
         };
 
         Arrays.stream(banTypes)

@@ -22,3 +22,9 @@ commands:
   sunblacklist:
     description: Unblacklist a player
     usage: /<command> <player>
+  smute:
+    description: Mute a player
+    usage: /<command> <player> <reason>
+  sunmute:
+    description: Unmute a player
+    usage: /<command> <player>

@@ -66,7 +66,9 @@ public class SQLiteManager {
             statement.executeUpdate("CREATE TABLE IF NOT EXISTS muted_players (" +
                     "id INTEGER PRIMARY KEY AUTOINCREMENT," +
                     "uuid VARCHAR(36) NOT NULL," +
-                    "expires_at TIMESTAMP)");
+                    "expires_at TIMESTAMP," +
+                    "reason TEXT," +
+                    "permanent BOOLEAN)");
 
             // Create audit_logs table
             statement.executeUpdate("CREATE TABLE IF NOT EXISTS audit_logs (" +

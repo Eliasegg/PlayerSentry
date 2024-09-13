@@ -23,6 +23,79 @@ import java.util.logging.Level;
 
 public class PlayerUtils {
 
+    /**
+     * Mute a player for a specified duration.
+     * If the duration is null, the mute is permanent.
+     * @param sender The command sender that executed the mute.
+     * @param playerName The name of the player.
+     * @param reason The reason for the mute.
+     * @param duration The duration of the mute.
+     */
+    public static void mutePlayer(CommandSender sender, String playerName, String reason, Date duration) {
+        boolean permanent = duration == null;
+        Date muteExpiration = permanent ? new Date(Long.MAX_VALUE) : duration;
+        String durationMessage = permanent ? "permanently" : "until &a" + muteExpiration;
+
+        boolean playerExists = getPlayer(playerName, player -> {
+            PlayerSentry.getInstance().getMutedPlayerManager().isPlayerMuted(player.getUniqueId()).thenAccept(isMuted -> {
+                if (isMuted) {
+                    MessageUtils.buildMessage(sender, "&cPlayer &7" + playerName + " &cis already muted.");
+                    return;
+                }
+
+                String banMessage = ChatColor.translateAlternateColorCodes('&', "&c" + reason);
+
+                PlayerSentry.getInstance().getMutedPlayerManager().mutePlayer(player.getUniqueId(), muteExpiration, reason, permanent);
+                MessageUtils.buildMessage(sender, "Muted &a" + playerName + " &7" + durationMessage);
+                
+                // If the player is online, notify them
+                Player onlinePlayer = player.getPlayer();
+                if (onlinePlayer != null && onlinePlayer.isOnline()) {
+                    MessageUtils.buildMessage(onlinePlayer, "&cYou have been muted " + durationMessage + "&c. Reason: &7" + banMessage);
+                }
+
+            });
+        });
+
+        if (!playerExists) {
+            MessageUtils.buildMessage(sender, "&cPlayer &7not found | Ensure that the player has played on the server before.");
+        }
+    }
+
+    /**
+     * Unmute a player.
+     * @param sender The command sender that executed the unmute.
+     * @param playerName The name of the player.
+     */
+    public static void unmutePlayer(CommandSender sender, String playerName) {
+        boolean playerExists = getPlayer(playerName, player -> {
+            PlayerSentry.getInstance().getMutedPlayerManager().isPlayerMuted(player.getUniqueId()).thenAccept(isMuted -> {
+                if (isMuted) {
+                    PlayerSentry.getInstance().getMutedPlayerManager().unmutePlayer(player.getUniqueId());
+                    MessageUtils.buildMessage(sender, "Unmuted &a" + playerName);
+                    
+                    // If the player is online, notify them
+                    Player onlinePlayer = player.getPlayer();
+                    if (onlinePlayer != null && onlinePlayer.isOnline()) {
+                        MessageUtils.buildMessage(onlinePlayer, "&aYou have been unmuted.");
+                    }
+                } else {
+                    MessageUtils.buildMessage(sender, "&cPlayer &7" + playerName + " &cis not muted.");
+                }
+            });
+        });
+
+        if (!playerExists) {
+            MessageUtils.buildMessage(sender, "&cPlayer &7not found | Ensure that the player has played on the server before.");
+        }
+    }
+
+    /**
+     * Ban a player IP permanently from the server.
+     * @param sender The command sender that executed the ban.
+     * @param playerName The name of the player.
+     * @param reason The reason for the ban.
+     */
     public static void banPlayerIP(CommandSender sender, String playerName, String reason) {
         CompletableFuture<InetAddress> ipFuture = PlayerUtils.getIPFromPlayer(playerName);
         ipFuture.thenAccept(ip -> {
@@ -49,6 +122,11 @@ public class PlayerUtils {
         });
     }
 
+    /**
+     * Unban a player IP permanently from the server.
+     * @param sender The command sender that executed the unban.
+     * @param playerName The name of the player.
+     */
     public static void unbanPlayerIP(CommandSender sender, String playerName) {
         CompletableFuture<InetAddress> ipFuture = PlayerUtils.getIPFromPlayer(playerName);
         ipFuture.thenAccept(ip -> {
@@ -98,7 +176,7 @@ public class PlayerUtils {
         });
 
         if (!playerExists) {
-            MessageUtils.buildMessage(sender, "&cPlayer &7not found.");
+            MessageUtils.buildMessage(sender, "&cPlayer &7not found | Ensure that the player has played on the server before.");
         }
     }
 
@@ -125,6 +203,8 @@ public class PlayerUtils {
 
     /**
      * Get a player by name, whether online or offline.
+     *
+     * An offline player counts if the player has played on the server before. They are added to the database.
      * @param playerName The name of the player.
      * @param playerConsumer The consumer to run on the player.
      * @return True if the player was found, false otherwise.
@@ -140,29 +220,31 @@ public class PlayerUtils {
             return true;
         }
 
-        // If not online, try to get the OfflinePlayer synchronously first
-        OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(playerName);
-        if (offlinePlayer != null && offlinePlayer.hasPlayedBefore()) {
-            playerConsumer.accept(offlinePlayer);
-            return true;
-        }
-
-        // If still not found, try the async method with a timeout
+        // If still not found, try looking up the player by their last known name in the database.
         CompletableFuture<Optional<OfflinePlayer>> offlinePlayerFuture = PlayerSentry.getInstance().getOfflinePlayerManager().getOfflinePlayerByName(playerName);
         try {
-            Optional<OfflinePlayer> offlinePlayerOptional = offlinePlayerFuture.get(5, TimeUnit.SECONDS);
+            Optional<OfflinePlayer> offlinePlayerOptional = offlinePlayerFuture.get(1, TimeUnit.SECONDS); // TODO: Configurable timeout
             if (offlinePlayerOptional.isPresent()) {
                 playerConsumer.accept(offlinePlayerOptional.get());
                 return true;
             }
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
-            PlayerSentry.getInstance().getLogger().log(Level.SEVERE, "Error or timeout while getting offline player", e);
+            // Not logging this. It is expected to happen if there is no player by that name that has played on the server before.
             return false;
         }
 
         return false;
     }
 
+    /**
+     * Get the IP address of a player. Whether the player is online or offline.
+     * If the player is online, the IP address is retrieved from the player's object.
+     * If the player is offline, the IP address is retrieved from the database.
+     * TODO: Maybe rework this method a little bit. It is getting quite messy.
+     *
+     * @param playerName The name of the player to get the IP address of.
+     * @return A future that completes with the IP address of the player.
+     */
     public static CompletableFuture<InetAddress> getIPFromPlayer(String playerName) {
         Player player = Bukkit.getPlayer(playerName);
         if (player != null) {
