@@ -30,6 +30,8 @@ public class ChatListener implements Listener {
 
                 MuteInfo muteInfo = optionalMuteInfo.get();
                 if (!muteInfo.isPermanent() && muteInfo.getExpiresAt().before(new Date())) {
+                    // Mute has expired, unmute the player and send the message.
+                    PlayerSentry.getInstance().getMutedPlayerManager().unmutePlayer(player.getUniqueId());
                     sendMessage(event);
                     return;
                 }

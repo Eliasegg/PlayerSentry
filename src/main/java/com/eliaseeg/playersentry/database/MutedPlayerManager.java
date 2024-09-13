@@ -146,31 +146,6 @@ public class MutedPlayerManager {
         return future;
     }
 
-    private CompletableFuture<Date> getMuteExpiration(UUID uuid) {
-        CompletableFuture<Date> future = new CompletableFuture<>();
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                String sql = "SELECT expires_at FROM muted_players WHERE uuid = ?";
-                try (Connection conn = plugin.getSqliteManager().getConnection();
-                     PreparedStatement pstmt = conn.prepareStatement(sql)) {
-                    pstmt.setString(1, uuid.toString());
-                    ResultSet rs = pstmt.executeQuery();
-                    if (rs.next()) {
-                        long expiresAt = rs.getLong("expires_at");
-                        future.complete(new Date(expiresAt));
-                    } else {
-                        future.complete(null);
-                    }
-                } catch (SQLException e) {
-                    plugin.getLogger().log(Level.SEVERE, "Error getting mute expiration for player", e);
-                    future.completeExceptionally(e);
-                }
-            }
-        }.runTaskAsynchronously(plugin);
-        return future;
-    }
-
     public static class MuteInfo {
         private final Date expiresAt;
         private final String reason;
