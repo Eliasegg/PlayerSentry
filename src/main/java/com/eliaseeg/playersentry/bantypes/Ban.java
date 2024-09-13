@@ -29,6 +29,7 @@ public class Ban extends BaseBanType {
 
         PlayerUtils.banPlayer(sender, playerName, reason, null).thenAccept(success -> {
             if (!success) return;
+
             PlayerUtils.getPlayer(playerName).thenAccept(optionalPlayer -> {
                 OfflinePlayer player = optionalPlayer.get();
 

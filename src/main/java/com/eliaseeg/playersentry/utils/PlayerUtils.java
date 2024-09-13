@@ -202,6 +202,7 @@ public class PlayerUtils {
 
             Player player = Bukkit.getPlayer(playerName);
             if (player != null && player.isOnline()) {
+                PlayerSentry.getInstance().getOfflinePlayerManager().addOrUpdatePlayer(player.getUniqueId(), player.getAddress().getAddress().getHostAddress(), player.getName());
                 player.kickPlayer(banMessage);
             }
 
@@ -285,7 +286,10 @@ public class PlayerUtils {
 
             ProfileBanList profileBanList = Bukkit.getBanList(BanList.Type.PROFILE);
             profileBanList.addBan(player.getPlayerProfile(), banMessage, duration, sender.getName());
+
             if (player.isOnline()) {
+                Player onlinePlayer = player.getPlayer();
+                PlayerSentry.getInstance().getOfflinePlayerManager().addOrUpdatePlayer(onlinePlayer.getUniqueId(), onlinePlayer.getAddress().getAddress().getHostAddress(), onlinePlayer.getName());
                 ((Player) player).kickPlayer(banMessage);
             }
 

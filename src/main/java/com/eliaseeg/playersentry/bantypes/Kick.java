@@ -32,17 +32,18 @@ public class Kick extends BaseBanType {
             return;
         }
 
+        PlayerSentry.getInstance().getAuditLogManager().addAuditLog(
+                sender.getName(),
+                player.getUniqueId(),
+                reason,
+                "Temporary",
+                this.toString(),
+                false
+        );
+
         player.kickPlayer(ChatColor.translateAlternateColorCodes('&', reason));
         MessageUtils.buildMessage(sender, "&aPlayer &7kicked.");
 
-        PlayerSentry.getInstance().getAuditLogManager().addAuditLog(
-            sender.getName(),
-            player.getUniqueId(),
-            reason,
-            "Temporary",
-            this.toString(),
-            false
-        );
     }
 
     @Override
